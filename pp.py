@@ -89,7 +89,6 @@ class Robot:
         self.__obstacles = obstacles
 
     def updatePoints(self, points):
-        #here should have bug fixed
         points = [0]+points+[0]
         self.__points = [MyPoint(x, y).rotate(self.__theta) for x, y in zip(self.__x_prime_array, points)]
         #print("points", [p.getXy() for p in self.__points])
