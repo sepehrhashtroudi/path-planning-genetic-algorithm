@@ -3,7 +3,7 @@
 ### how to run?
 clone the repository by git clone
 ```
-pip install requirements.tst
+pip install requirements.txt
 python pp.py
 
 ```
