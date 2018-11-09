@@ -11,6 +11,7 @@ from shapely.geometry import LineString
 from descartes import PolygonPatch
 import random
 import matplotlib.lines as mlines
+import matplotlib.pyplot as plt
 import copy
 
 
@@ -44,8 +45,6 @@ class MyLineString(LineString):
     def getAngle(self, other):
         return math.fabs(self.getMyAngle() - other.getMyAngle())%math.pi
 
-    def get_distance(self):
-        pass
 
 class Obstacle(Polygon):
 
@@ -129,7 +128,7 @@ class Robot:
         return math.exp(-a*min_distance)
 
     def getCost(self,a):
-        cost = self.getFL() + 5*self.getFS() + 20*self.getFO(a) + 10*self.getCV()
+        cost = self.getFL() + 5*self.getFS() + 30*self.getFO(a) + 10*self.getCV()
         return cost
 
     # return a line from start to stop
@@ -200,34 +199,59 @@ class GA:
         return pop_cost_sorted
 
 
-    def selectMatingPool(self):
-        pass
-
 
 
 
 #create robot object
+num_of_runs = 0
 grid_size = 10
 obsNum = 30
 population_size=50
 a=1
+best_costs = []
 ga = GA(chSize = grid_size, talentSize = 3)
 r = Robot(MyPoint(0, 0), MyPoint(10, 10), grid_size + 1, None)
 ga.genPopulation(max=5, min=-5,population_size = population_size)
 obstacles = [Obstacle(MyPoint(random.randint(1, 20), random.randint(1, 10)), 0.5) for i in
-                 range(20)]
+                 range(obsNum)]
 r.setObstacles(obstacles)             
 
 
 # function that they are connected to buttons of user interface
 
 def run(num):
+    global num_of_runs 
+    
     print("run")
+    ga.genPopulation(max=5, min=-5,population_size = population_size)
+    best_costs.append([])
     for i in range(num):
-        iterate()
+        best_costs[num_of_runs].append(iterate()) 
+    num_of_runs += 1
+
+    
 
 def result(ui):
     print("show_result")
+    best_costs.append([])
+    for i in range(len(best_costs[0])):
+        sum=0
+        for j in range(num_of_runs):
+            sum = sum + best_costs[j][i]
+        best_costs[len(best_costs)-1].append(sum/num_of_runs) 
+    
+    fig, ax = plt.subplots(2, int((len(best_costs)+1)/2))
+    fig.suptitle("result")
+    ax = ax.reshape(-1, 1)
+    for a, i in zip(ax, range(len(best_costs))):
+        a[0].plot(best_costs[i])
+        a[0].grid(which='both')
+        if i != len(best_costs) - 1:
+            a[0].set_title("run" )
+        else:
+            a[0].set_title("ave")
+    plt.show()
+
 
 
 
@@ -254,10 +278,11 @@ def iterate():
     print(new_Population_cost[0][1],new_Population_cost[population_size-1][1])
     new_population, _ = list(zip(*new_Population_cost))
     r.updatePoints(new_population[0])
+
     print("FL:{},FS:{},FO:{},CV:{}".format(r.getFL(),r.getFS(),r.getFO(a),r.getCV()))
     form.show_all(r)
     ga.setpopulation(new_population)
-
+    return new_Population_cost[0][1]
 
         
 
